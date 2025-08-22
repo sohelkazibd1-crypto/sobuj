@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Mini App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --primary-color: #40a7e3;
+            --secondary-color: #f0f0f0;
+            --card-bg: #f8f8f8;
+            --border-color: #e0e0e0;
+            --success-color: #4CAF50;
+            --danger-color: #f44336;
+            --warning-color: #ff9800;
+        }
+
+        .dark-mode {
+            --bg-color: #1a1a1a;
+            --text-color: #ffffff;
+            --primary-color: #40a7e3;
+            --secondary-color: #2d2d2d;
+            --card-bg: #2a2a2a;
+            --border-color: #404040;
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 100%;
+            padding: 16px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary-color), #2c90c9);
+            color: white;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .user-balance {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .theme-toggle {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 16px;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title i {
+            color: var(--primary-color);
+        }
+
+        .level-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .level {
+            text-align: center;
+            flex: 1;
+            padding: 15px 10px;
+            border-radius: 12px;
+            background-color: var(--secondary-color);
+            margin: 0 5px;
+            min-width: 100px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .level.current {
+            background: linear-gradient(135deg, var(--primary-color), #2c90c9);
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .level.locked {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .level-number {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .level-price {
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .feature-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+
+        .feature-list i {
+            color: var(--success-color);
+        }
+
+        .payment-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .payment-option {
+            padding: 15px;
+            text-align: center;
+            background-color: var(--secondary-color);
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .payment-option:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .payment-icon {
+            font-size: 24px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary-color), #2c90c9);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 15px;
+            width: 100%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            background: var(--border-color);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-size: 16px;
+        }
+
+        .admin-panel {
+            margin-top: 30px;
+            border-top: 2px solid var(--border-color);
+            padding-top: 20px;
+        }
+
+        .admin-section {
+            display: none;
+        }
+
+        .admin-visible .admin-section {
+            display: block;
+        }
+
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            align-items: center;
+        }
+
+        .transaction-info {
+            flex: 1;
+        }
+
+        .transaction-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .approve-btn {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .reject-btn {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .tab-container {
+            display: flex;
+            margin-bottom: 20px;
+            background-color: var(--secondary-color);
+            border-radius: 12px;
+            padding: 5px;
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+
+        .tab.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            .payment-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .github-section {
+            margin-top: 30px;
+            text-align: center;
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .github-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 24px;
+            background-color: #333;
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="user-profile">
+                <img id="user-avatar" src="https://ui-avatars.com/api/?name=User&background=random" class="avatar" alt="User Avatar">
+                <div class="user-info">
+                    <div id="user-name" class="user-name">User Name</div>
+                    <div id="user-balance" class="user-balance">Balance: $100.50</div>
+                </div>
+            </div>
+            <button class="theme-toggle" id="theme-toggle">🌙</button>
+        </div>
+
+        <div class="tab-container">
+            <div class="tab active" data-tab="profile">Profile</div>
+            <div class="tab" data-tab="levels">Levels</div>
+            <div class="tab" data-tab="payments">Payments</div>
+            <div class="tab" data-tab="admin">Admin</div>
+        </div>
+
+        <div class="tab-content active" id="profile-tab">
+            <div class="card">
+                <div class="card-title"><i class="fas fa-user-edit"></i> প্রোফাইল এডিট করুন</div>
+                <div class="input-group">
+                    <label for="edit-name">নাম পরিবর্তন করুন</label>
+                    <input type="text" id="edit-name" placeholder="আপনার নাম লিখুন">
+                </div>
+                <div class="input-group">
+                    <label for="avatar-upload">প্রোফাইল ছবি আপলোড করুন</label>
+                    <input type="file" id="avatar-upload" accept="image/*">
+                </div>
+                <button class="btn" id="save-profile"><i class="fas fa-save"></i> সেভ করুন</button>
+            </div>
+        </div>
+
+        <div class="tab-content" id="levels-tab">
+            <div class="card">
+                <div class="card-title"><i class="fas fa-chart-line"></i> লেভেল সিস্টেম</div>
+                <div class="level-container">
+                    <div class="level current" data-level="0">
+                        <div class="level-number">0</div>
+                        <div class="level-price">ফ্রি</div>
+                    </div>
+                    <div class="level" data-level="1">
+                        <div class="level-number">1</div>
+                        <div class="level-price">$5</div>
+                    </div>
+                    <div class="level" data-level="2">
+                        <div class="level-number">2</div>
+                        <div class="level-price">$10</div>
+                    </div>
+                    <div class="level locked" data-level="3">
+                        <div class="level-number">3</div>
+                        <div class="level-price">$20</div>
+                    </div>
+                    <div class="level locked" data-level="4">
+                        <div class="level-number">4</div>
+                        <div class="level-price">$50</div>
+                    </div>
+                    <div class="level locked" data-level="5">
+                        <div class="level-number">5</div>
+                        <div class="level-price">$100</div>
+                    </div>
+                </div>
+                <div id="level-features">
+                    <h3>বর্তমান লেভেল: 0 - বেসিক ফিচার</h3>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check-circle"></i> বেসিক প্রোফাইল কাস্টমাইজেশন</li>
+                        <li><i class="fas fa-check-circle"></i> সীমিত ট্রানজেকশন</li>
+                        <li><i class="fas fa-times-circle"></i> উন্নত থিম সিস্টেম</li>
+                        <li><i class="fas fa-times-circle"></i> প্রিয়াতি সাপোর্ট</li>
+                    </ul>
+                </div>
+                <button class="btn" id="upgrade-btn" disabled><i class="fas fa-arrow-up"></i> আপগ্রেড করুন</button>
+            </div>
+        </div>
+
+        <div class="tab-content" id="payments-tab">
+            <div class="card">
+                <div class="card-title"><i class="fas fa-money-bill-wave"></i> টাকা ডিপোজিট/উইথড্র</div>
+                <div class="input-group">
+                    <label for="amount-input">টাকার পরিমাণ</label>
+                    <input type="number" id="amount-input" placeholder="টাকার পরিমাণ লিখুন">
+                </div>
+                <div class="input-group">
+                    <label>পেমেন্ট মেথড</label>
+                    <div class="payment-options">
+                        <div class="payment-option" data-method="bkash">
+                            <i class="fas fa-mobile-alt payment-icon"></i>
+                            <span>bKash</span>
+                        </div>
+                        <div class="payment-option" data-method="nagad">
+                            <i class="fas fa-money-bill payment-icon"></i>
+                            <span>Nagad</span>
+                        </div>
+                        <div class="payment-option" data-method="rocket">
+                            <i class="fas fa-rocket payment-icon"></i>
+                            <span>Rocket</span>
+                        </div>
+                        <div class="payment-option" data-method="crypto">
+                            <i class="fab fa-bitcoin payment-icon"></i>
+                            <span>Crypto</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn" id="deposit-btn"><i class="fas fa-download"></i> ডিপোজিট</button>
+                <button class="btn" id="withdraw-btn"><i class="fas fa-upload"></i> উইথড্র</button>
+            </div>
+        </div>
+
+        <div class="tab-content" id="admin-tab">
+            <div class="card">
+                <div class="card-title"><i class="fas fa-cog"></i> এডমিন প্যানেল</div>
+                <p id="admin-access-message">শুধুমাত্র এডমিন এক্সেসের জন্য</p>
+                <div class="admin-section">
+                    <h3><i class="fas fa-users"></i> ইউজার ম্যানেজমেন্ট</h3>
+                    <div id="user-list">
+                        <!-- User list will be populated here -->
+                    </div>
+                    
+                    <h3><i class="fas fa-exchange-alt"></i> ট্রানজেকশন অনুমোদন</h3>
+                    <div id="transaction-list">
+                        <!-- Transaction list will be populated here -->
+                    </div>
+                    
+                    <h3><i class="fas fa-shield-alt"></i> ফ্রড ডিটেকশন</h3>
+                    <div id="fraud-alerts">
+                        <!-- Fraud alerts will be shown here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="github-section">
+            <h3>GitHub-এ হোস্ট করার জন্য প্রস্তুত</h3>
+            <p>এই অ্যাপটি GitHub Pages-এ হোস্ট করার জন্য সম্পূর্ণভাবে প্রস্তুত। নিচের বাটন ক্লিক করে GitHub রিপোজিটরি এক্সেস করুন।</p>
+            <a href="https://github.com" class="github-btn" target="_blank">
+                <i class="fab fa-github"></i> GitHub রিপোজিটরি
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Telegram Web App initialization
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.enableClosingConfirmation();
+        
+        // User data
+        let userData = {
+            id: tg.initDataUnsafe.user?.id || 1,
+            firstName: tg.initDataUnsafe.user?.first_name || "User",
+            lastName: tg.initDataUnsafe.user?.last_name || "",
+            username: tg.initDataUnsafe.user?.username || "user",
+            photoUrl: tg.initDataUnsafe.user?.photo_url || "https://ui-avatars.com/api/?name=User&background=random",
+            balance: 100.50,
+            level: 0,
+            theme: 'light'
+        };
+        
+        // Check if user is admin (in real app, this would be checked against a database)
+        const isAdmin = userData.id === 1; // Example: user with ID 1 is admin
+        
+        // DOM elements
+        const themeToggle = document.getElementById('theme-toggle');
+        const userAvatar = document.getElementById('user-avatar');
+        const userName = document.getElementById('user-name');
+        const userBalance = document.getElementById('user-balance');
+        const editName = document.getElementById('edit-name');
+        const avatarUpload = document.getElementById('avatar-upload');
+        const saveProfileBtn = document.getElementById('save-profile');
+        const upgradeBtn = document.getElementById('upgrade-btn');
+        const amountInput = document.getElementById('amount-input');
+        const depositBtn = document.getElementById('deposit-btn');
+        const withdrawBtn = document.getElementById('withdraw-btn');
+        const adminAccessMessage = document.getElementById('admin-access-message');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        // Initialize the app
+        function initApp() {
+            // Set user data
+            userName.textContent = `${userData.firstName} ${userData.lastName}`;
+            userBalance.textContent = `Balance: $${userData.balance.toFixed(2)}`;
+            userAvatar.src = userData.photoUrl;
+            editName.value = `${userData.firstName} ${userData.lastName}`;
+            
+            // Set theme
+            if (userData.theme === 'dark') {
+                document.body.classList.add('dark-mode');
+                themeToggle.textContent = '☀️';
+            }
+            
+            // Set up levels
+            setupLevels();
+            
+            // Set up admin panel
+            if (isAdmin) {
+                adminAccessMessage.textContent = "এডমিন এক্সেস সক্ষম";
+                adminAccessMessage.style.color = "var(--success-color)";
+            } else {
+                adminAccessMessage.textContent = "আপনার এডমিন এক্সেস নেই";
+                adminAccessMessage.style.color = "var(--danger-color)";
+            }
+            
+            // Set up tabs
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+                    
+                    // Deactivate all tabs
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(tc => tc.classList.remove('active'));
+                    
+                    // Activate current tab
+                    tab.classList.add('active');
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                    
+                    // If admin tab, load admin data
+                    if (tabId === 'admin' && isAdmin) {
+                        loadAdminData();
+                    }
+                });
+            });
+        }
+        
+        // Set up level system
+        function setupLevels() {
+            const levels = document.querySelectorAll('.level');
+            levels.forEach(level => {
+                const levelNum = parseInt(level.getAttribute('data-level'));
+                
+                if (levelNum === userData.level) {
+                    level.classList.add('current');
+                } else if (levelNum > userData.level) {
+                    level.classList.add('locked');
+                }
+                
+                if (levelNum === userData.level + 1) {
+                    upgradeBtn.disabled = false;
+                    upgradeBtn.innerHTML = `<i class="fas fa-arrow-up"></i> আপগ্রেড করুন ($${getLevelPrice(levelNum)})`;
+                }
+            });
+            
+            updateLevelFeatures();
+        }
+        
+        // Get price for a level
+        function getLevelPrice(level) {
+            const prices = {
+                1: 5,
+                2: 10,
+                3: 20,
+                4: 50,
+                5: 100
+            };
+            return prices[level] || 0;
+        }
+        
+        // Update level features display
+        function updateLevelFeatures() {
+            const featuresContainer = document.getElementById('level-features');
+            let featuresHTML = `<h3>বর্তমান লেভেল: ${userData.level} - `;
+            let featuresList = '';
+            
+            switch(userData.level) {
+                case 0:
+                    featuresHTML += 'বেসিক ফিচার</h3>';
+                    featuresList = `
+                        <ul class="feature-list">
+                            <li><i class="fas fa-check-circle"></i> বেসিক প্রোফাইল কাস্টমাইজেশন</li>
+                            <li><i class="fas fa-check-circle"></i> সীমিত ট্রানজেকশন</li>
+                            <li><i class="fas fa-times-circle"></i> উন্নত থিম সিস্টেম</li>
+                            <li><i class="fas fa-times-circle"></i> প্রিয়াতি সাপোর্ট</li>
+                        </ul>
+                    `;
+                    break;
+                case 1:
+                    featuresHTML += 'সিলভার ফিচার</h3>';
+                    featuresList = `
+                        <ul class="feature-list">
+                            <li><i class="fas fa-check-circle"></i> উন্নত প্রোফাইল কাস্টমাইজেশন</li>
+                            <li><i class="fas fa-check-circle"></i> বেশি ট্রানজেকশন লিমিট</li>
+                            <li><i class="fas fa-check-circle"></i> বেসিক থিম</li>
+                            <li><i class="fas fa-times-circle"></i> প্রিয়াতি সাপোর্ট</li>
+                        </ul>
+                    `;
+                    break;
+                case 2:
+                    featuresHTML += 'গোল্ড ফিচার</h3>';
+                    featuresList = `
+                        <ul class="feature-list">
+                            <li><i class="fas fa-check-circle"></i> প্রিমিয়াম প্রোফাইল কাস্টমাইজেশন</li>
+                            <li><i class="fas fa-check-circle"></i> অনলিমিটেড ট্রানজেকশন</li>
+                            <li><i class="fas fa-check-circle"></i> এক্সক্লুসিভ থিম</li>
+                            <li><i class="fas fa-check-circle"></i> প্রিয়াতি সাপোর্ট</li>
+                        </ul>
+                    `;
+                    break;
+                case 3:
+                case 4:
+                case 5:
+                    featuresHTML += 'প্রিমিয়াম ফিচার</h3>';
+                    featuresList = `
+                        <ul class="feature-list">
+                            <li><i class="fas fa-check-circle"></i> সমস্ত প্রিমিয়াম ফিচার</li>
+                            <li><i class="fas fa-check-circle"></i> VIP সাপোর্ট</li>
+                            <li><i class="fas fa-check-circle"></i> কাস্টম থিম</li>
+                            <li><i class="fas fa-check-circle"></i> বিশেষ অফার</li>
+                        </ul>
+                    `;
+                    break;
+            }
+            
+            featuresContainer.innerHTML = featuresHTML + featuresList;
+        }
+        
+        // Event listeners
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            if (document.body.classList.contains('dark-mode')) {
+                themeToggle.textContent = '☀️';
+                userData.theme = 'dark';
+            } else {
+                themeToggle.textContent = '🌙';
+                userData.theme = 'light';
+            }
+            // Save theme preference (in a real app, this would be saved to a database)
+        });
+        
+        saveProfileBtn.addEventListener('click', () => {
+            const newName = editName.value;
+            userName.textContent = newName;
+            
+            if (avatarUpload.files && avatarUpload.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    userAvatar.src = e.target.result;
+                    // Save new avatar (in a real app, this would be uploaded to a server)
+                }
+                reader.readAsDataURL(avatarUpload.files[0]);
+            }
+            
+            // Show confirmation
+            tg.showPopup({
+                title: 'সফল!',
+                message: 'প্রোফাইল আপডেট করা হয়েছে',
+                buttons: [{type: 'ok'}]
+            });
+        });
+        
+        upgradeBtn.addEventListener('click', () => {
+            const nextLevel = userData.level + 1;
+            const cost = getLevelPrice(nextLevel);
+            
+            if (userData.balance >= cost) {
+                userData.balance -= cost;
+                userData.level = nextLevel;
+                userBalance.textContent = `Balance: $${userData.balance.toFixed(2)}`;
+                
+                // Update UI
+                document.querySelector('.level.current').classList.remove('current');
+                document.querySelector(`.level[data-level="${nextLevel}"]`).classList.remove('locked');
+                document.querySelector(`.level[data-level="${nextLevel}"]`).classList.add('current');
+                
+                setupLevels();
+                
+                tg.showPopup({
+                    title: 'সফল!',
+                    message: `লেভেল ${nextLevel} এ আপগ্রেড করা হয়েছে`,
+                    buttons: [{type: 'ok'}]
+                });
+            } else {
+                tg.showPopup({
+                    title: 'ত্রুটি!',
+                    message: 'পর্যাপ্ত ব্যালেন্স নেই',
+                    buttons: [{type: 'ok'}]
+                });
+            }
+        });
+        
+        depositBtn.addEventListener('click', () => {
+            const amount = parseFloat(amountInput.value);
+            if (amount && amount > 0) {
+                // In a real app, this would initiate a payment process
+                userData.balance += amount;
+                userBalance.textContent = `Balance: $${userData.balance.toFixed(2)}`;
+                amountInput.value = '';
+                
+                tg.showPopup({
+                    title: 'সফল!',
+                    message: `$${amount.toFixed(2)} ডিপোজিট করা হয়েছে`,
+                    buttons: [{type: 'ok'}]
+                });
+            }
+        });
+        
+        withdrawBtn.addEventListener('click', () => {
+            const amount = parseFloat(amountInput.value);
+            if (amount && amount > 0) {
+                if (userData.balance >= amount) {
+                    // In a real app, this would initiate a withdrawal process
+                    userData.balance -= amount;
+                    userBalance.textContent = `Balance: $${userData.balance.toFixed(2)}`;
+                    amountInput.value = '';
+                    
+                    tg.showPopup({
+                        title: 'সফল!',
+                        message: `$${amount.toFixed(2)} উত্তোলনের জন্য অনুরোধ করা হয়েছে`,
+                        buttons: [{type: 'ok'}]
+                    });
+                } else {
+                    tg.showPopup({
+                        title: 'ত্রুটি!',
+                        message: 'পর্যাপ্ত ব্যালেন্স নেই',
+                        buttons: [{type: 'ok'}]
+                    });
+                }
+            }
+        });
+        
+        // Payment method selection
+        document.querySelectorAll('.payment-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.payment-option').forEach(o => {
+                    o.style.backgroundColor = '';
+                    o.style.color = '';
+                });
+                option.style.backgroundColor = 'var(--primary-color)';
+                option.style.color = 'white';
+                
+                // In a real app, this would set the selected payment method
+            });
+        });
+        
+        // Load admin data (mockup)
+        function loadAdminData() {
+            // Mock user list
+            document.getElementById('user-list').innerHTML = `
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <div class="stat-label">মোট ইউজার</div>
+                        <div class="stat-value">1,245</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">সক্রিয় ইউজার</div>
+                        <div class="stat-value">892</div>
+                    </div>
+                </div>
+                <div class="transaction-item">
+                    <div class="transaction-info">
+                        <div>User 1 (user1)</div>
+                        <div>Level 2 | $50.00</div>
+                    </div>
+                    <div class="transaction-actions">
+                        <button class="action-btn reject-btn"><i class="fas fa-ban"></i> ব্লক</button>
+                    </div>
+                </div>
+                <div class="transaction-item">
+                    <div class="transaction-info">
+                        <div>User 2 (user2)</div>
+                        <div>Level 1 | $25.75</div>
+                    </div>
+                    <div class="transaction-actions">
+                        <button class="action-btn reject-btn"><i class="fas fa-ban"></i> ব্লক</button>
+                    </div>
+                </div>
+            `;
+            
+            // Mock transaction list
+            document.getElementById('transaction-list').innerHTML = `
+                <div class="transaction-item">
+                    <div class="transaction-info">
+                        <div>User 1 - Withdraw $20.00</div>
+                        <div>bKash | 10 mins ago</div>
+                    </div>
+                    <div class="transaction-actions">
+                        <button class="action-btn approve-btn"><i class="fas fa-check"></i> অনুমোদন</button>
+                        <button class="action-btn reject-btn"><i class="fas fa-times"></i> বাতিল</button>
+                    </div>
+                </div>
+                <div class="transaction-item">
+                    <div class="transaction-info">
+                        <div>User 2 - Deposit $50.00</div>
+                        <div>Nagad | 25 mins ago</div>
+                    </div>
+                    <div class="transaction-actions">
+                        <button class="action-btn approve-btn"><i class="fas fa-check"></i> অনুমোদন</button>
+                        <button class="action-btn reject-btn"><i class="fas fa-times"></i> বাতিল</button>
+                    </div>
+                </div>
+            `;
+            
+            // Mock fraud alerts
+            document.getElementById('fraud-alerts').innerHTML = `
+                <div class="card">
+                    <p><i class="fas fa-check-circle" style="color: var(--success-color);"></i> কোনো ফ্রড সনাক্ত হয়নি</p>
+                </div>
+            `;
+        }
+        
+        // Initialize the app
+        initApp();
+    </script>
+</body>
+</html>
